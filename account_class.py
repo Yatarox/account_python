@@ -69,14 +69,16 @@ class Account:
     def __validate_amount(self, amount):
         if amount <= 0:
             raise ValueError("Montant doit être positif")
+    
     #Basic feature
     def withdraw(self, currency, amount):
         self.__validate_currency(currency)
         self.__validate_amount(amount)
 
-        if self.__balance.get(currency, 0) >= amount:
-            self.__balance[currency] -= amount
-            print(f"Nouveau solde en {currency.upper()}: {self.__balance[currency]:.2f}")
+        if self.__balance >= amount:
+            retire = self.convert("eur", currency, amount)
+            self.__balance -= amount
+            return self.__balance, retire
         else:
             print("Fonds insuffisants.")
 
@@ -84,13 +86,12 @@ class Account:
         self.__validate_currency(currency)
         self.__validate_amount(amount)
 
-        self.__balance[currency] = self.__balance.get(currency, 0) + amount
-        print(f"Nouveau solde en {currency.upper()}: {self.__balance[currency]:.2f}")
+        add= self.convert(currency, "eur", amount)
+        self.__balance += add
+        return self.__balance, add
 
     def dump(self):
-        print(f"Utilisateur: {self.__name} | N° de compte: {self.__account_number}")
-        for cur, val in self.__balance.items():
-            print(f"   {cur.upper()}: {val:.2f}")
+        print(f"Utilisateur: {self.__name} | N° de compte: {self.__account_number} | Balance : {self.__balance}")
         print(f"   Livret EUR: {self.__livret:.2f} (dernière maj : {self.__livret_last_update})")
     
     #Livret feature 
@@ -178,11 +179,7 @@ class Account:
 
         rate = rates[to_currency]
         converted_amount = amount * rate
-        self.__balance[from_currency] -= amount
-        self.__balance[to_currency] = self.__balance.get(to_currency, 0) + converted_amount
-
-        print(f"{amount} {from_currency.upper()} = {converted_amount:.2f} {to_currency.upper()}")
-        print(f"Nouveau solde : {self.__balance}")
+        return converted_amount
     
 
     #save data on json
