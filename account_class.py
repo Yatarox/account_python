@@ -4,7 +4,6 @@ import json
 import hashlib
 from datetime import datetime
 from PIL import Image
-from PIL import ImageFont
 from PIL import ImageDraw
 
 class Account:
@@ -29,7 +28,9 @@ class Account:
             if isinstance(data, dict):
                 for account_number, account_data in data.items():
                     if account_data["Name"] == self.__name and account_data["Password"] == self.__password:
-                        return True, account_data['Role']
+                        current_user = {account_number: account_data}
+                        print(current_user)
+                        return True, current_user
     
     def create(self):
         with open('account.json', 'r', encoding="utf-8") as f:
@@ -317,8 +318,6 @@ class Account:
         account_number = Account.generate_account_number()
         return Account(name, account_number, balance, 0, livret_last_update)
 
-
-
     def generate_card(self):
         image = Image.open("./assets/base.jpg")
 
@@ -328,5 +327,8 @@ class Account:
 
         draw.text((75, 100), self.__account_number, (255, 255, 255))
 
-        watermark_image.show()
-        watermark_image.save("./cards/vertical.png")
+        #watermark_image.show()
+        path_card = f"./cards/{self.__account_number}.png"
+        watermark_image.save(path_card)
+        return path_card
+        
