@@ -95,32 +95,22 @@ class Account:
         print(f"   Livret EUR: {self.__livret:.2f} (dernière maj : {self.__livret_last_update})")
     
     #Livret feature 
-    def deposit_livret(self, currency, amount):
-        self.__validate_currency(currency)
+    def deposit_livret(self,amount):
         self.__validate_amount(amount)
 
-        if self.__balance.get(currency, 0) < amount:
+        if self.__balance < amount:
             print("Fonds insuffisants.")
             return
 
         self.apply_interest()
 
-        if currency != "eur":
-            print(f"Conversion de {currency.upper()} en EUR pour le livret...")
-            before_eur = self.__balance.get("eur", 0)
-            self.convert(currency, "eur", amount)
-            amount_to_livret = self.__balance.get("eur", 0) - before_eur
-        else:
-            self.__balance["eur"] -= amount
-            amount_to_livret = amount
-
-        if self.__livret + amount_to_livret > self.LIVRET_PLAFOND:
+        if self.__livret + amount > self.LIVRET_PLAFOND:
             print("Dépassement du plafond du livret.")
             return
 
-        self.__livret += amount_to_livret
+        self.__livret += amount
         self.__livret_last_update = datetime.today().strftime('%Y-%m-%d')
-        print(f"{amount_to_livret:.2f} EUR déposés sur le livret. Nouveau solde livret : {self.__livret:.2f} EUR")
+        print(f"{amount} EUR déposés sur le livret. Nouveau solde livret : {self.__livret:.2f} EUR")
 
     def calculate_interest(self):
         last_update = datetime.strptime(self.__livret_last_update, "%Y-%m-%d")
