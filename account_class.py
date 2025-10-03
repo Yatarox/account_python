@@ -319,15 +319,14 @@ class Account:
 
 
 
-# class Card(Account):
-#     def __init__(self, __account_number):
-#         super().__init__(__account_number)
-#         self.img = ""
+    def generate_card(self):
+        image = Image.open("./assets/base.jpg")
 
-    
-#     def create_card(self):
-#         image = Image.open("./assets/base.jpg")
-#         watermark_image = image.copy()
-#         draw = ImageDraw.Draw(watermark_image)
-#         draw.text((0, 0), "GeeksforGeeks", (255, 255, 255))
-#         pass
+        watermark_image = image.copy()
+
+        draw = ImageDraw.Draw(watermark_image)
+
+        draw.text((75, 100), self.__account_number, (255, 255, 255))
+
+        watermark_image.show()
+        watermark_image.save("./cards/vertical.png")
