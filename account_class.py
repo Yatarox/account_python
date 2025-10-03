@@ -12,13 +12,58 @@ class Account:
     LIVRET_TAUX = 0.03
     LIVRET_PLAFOND = 22950
 
-    def __init__(self, name, account_number, balance, livret, livret_last_update):
+    def __init__(self, password, account_number=None, role="User", name=None, balance=None, livret=None, balance_livret=None, livret_last_update=None):
         self.__name = name
         self.__account_number = account_number
         self.__balance = balance
         self.__livret = livret
         self.__livret_last_update = livret_last_update
+        self.__password = password
+        self.__role = role
+        self.__balance_livret = balance_livret
     
+    def authentificate(self):
+        with open("account.json", 'r', encoding="utf-8") as file:
+            data = json.load(file)
+
+            if isinstance(data, dict):
+                for account_number, account_data in data.items():
+                    if account_data["Name"] == self.__name and account_data["Password"] == self.__password:
+                        name = account_data["Name"]
+                        return True, account_data['Role']
+    
+    def create(self):
+        
+        with open('account.json', 'r', encoding="utf-8") as f:
+
+            data_exist = json.load(f)
+
+            if self.__livret_last_update == None:
+                self.__livret_last_update = datetime.today().strftime('%Y-%m-%d')
+
+            self.__account_number = self.generate_account_number()
+            if self.__livret == 1:
+                self.__livret = True
+            else:
+                self.__livret = False
+                self.__balance_livret = None
+            new_data = {self.__account_number: {"Name": self.__name, "Balance": self.__balance, "Password": self.__password,  "Role": self.__role, "Livret": self.__livret, "Balance_livret": self.__balance_livret, "Livret_last_update": self.__livret_last_update}}
+
+            if isinstance(data_exist, list):
+                data_exist.append(new_data)
+                data_to_insert = data_exist
+            else:
+                data_to_insert = [data_exist, new_data]
+
+            f.close()
+
+            with open('account.json', 'w+', encoding="utf-8") as file:
+                json.dump(data_to_insert, file, indent=4, ensure_ascii=False)
+
+                file.close()
+        
+        print("L'utilisateur à été enregistré avec succès")
+        
     #Check valide input
     def __validate_currency(self, currency):
         if currency not in self.VALID_CURRENCIES:
@@ -287,39 +332,6 @@ class Account:
                 break
         account_number = Account.generate_account_number()
         return Account(name, account_number, balance, 0, livret_last_update)
-    
-    @staticmethod
-    def load_account():
-        numero_de_compte = input("Numéro de compte du propriétaire du compte : ")
-
-        try:
-            with open('account.json', 'r') as file:
-                data = json.load(file)
-        except FileNotFoundError:
-            print("Aucun fichier de compte trouvé.")
-            return None
-
-        saved_hash = data.pop("_hash", None)
-        if not saved_hash:
-            print("Fichier invalide : aucun hash")
-            return None
-
-        recalculated_hash = hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()
-        if saved_hash != recalculated_hash:
-            print("⚠️ Le fichier a été modifié !")
-            return None
-        
-        for account_number, account_data in data.items():
-            if account_number == numero_de_compte:
-                balance = account_data["Balance"]
-                livret = account_data["Livret"]
-                livret_last_update = account_data["Livret_last_update"]
-                name = account_data["Name"]
-                print(f"Bienvenue {account_data["Name"]} !")
-                return Account(name, account_number, balance, livret, livret_last_update)
-
-        print("Compte introuvable")
-        return None
 
 
 

@@ -1,58 +1,24 @@
-{
-    "1301992051": {
-        "Name": "1",
-        "Balance": {
-            "usd": 1.0,
-            "eur": 0,
-            "jpy": 0,
-            "gbp": 0
+[
+    {
+        "1301992051": {
+            "Name": "Thomas",
+            "Balance": 0,
+            "Password": "4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2",
+            "Role": "Admin",
+            "Livret": 0,
+            "Livret_last_update": "2025-10-03"
         },
-        "Livret": 0,
-        "Livret_last_update": "2025-10-03"
+        "_hash": "1c4c19d75618ae03fca78d55f7c6f66a75376f50d4ade1379363c67c1f27b0a5"
     },
-    "3912539748": {
-        "Name": "2",
-        "Balance": {
-            "usd": 0,
-            "eur": 2.0,
-            "jpy": 0,
-            "gbp": 0
-        },
-        "Livret": 0,
-        "Livret_last_update": "2025-10-03"
-    },
-    "8583022438": {
-        "Name": "3",
-        "Balance": {
-            "usd": 0,
-            "eur": 0,
-            "jpy": 3.0,
-            "gbp": 0
-        },
-        "Livret": 0,
-        "Livret_last_update": "2025-10-03"
-    },
-    "2634773721": {
-        "Name": "Kevin",
-        "Balance": {
-            "usd": 9993950.0,
-            "eur": 100.0,
-            "jpy": 10.0,
-            "gbp": 4450.21242
-        },
-        "Livret": 0,
-        "Livret_last_update": "2025-10-03"
-    },
-    "4716243232": {
-        "Name": "Billy",
-        "Balance": {
-            "usd": 0.68009018,
-            "eur": 0,
-            "jpy": 0.0,
-            "gbp": 0
-        },
-        "Livret": 0,
-        "Livret_last_update": "2025-10-03"
-    },
-    "_hash": "1c4c19d75618ae03fca78d55f7c6f66a75376f50d4ade1379363c67c1f27b0a5"
-}
+    {
+        "0579366054": {
+            "name": "Leo",
+            "balance": "123",
+            "password": "4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2",
+            "role": "User",
+            "epargne": true,
+            "balance_epargne": "10",
+            "Livret_last_update": "2025-10-03"
+        }
+    }
+]

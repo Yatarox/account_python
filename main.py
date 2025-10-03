@@ -1,7 +1,7 @@
 from account_class import Account
+from graphic_functions import App
 
 def main():
-
     try:
         choix = int(input(""" 
                           1: Crée un nouveau compte
@@ -22,4 +22,6 @@ def main():
     # card = Card(user, user.__account_number)
     # card.create_card()
 if __name__ == '__main__':
-    main()
+    app = App()
+    app.mainloop()
+    #main()
