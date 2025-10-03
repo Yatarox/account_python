@@ -1,24 +1,20 @@
-[
-    {
-        "1301992051": {
-            "Name": "Thomas",
-            "Balance": 0,
-            "Password": "4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2",
-            "Role": "Admin",
-            "Livret": 0,
-            "Livret_last_update": "2025-10-03"
-        },
-        "_hash": "1c4c19d75618ae03fca78d55f7c6f66a75376f50d4ade1379363c67c1f27b0a5"
+{
+    "1234567890": {
+        "Name": "Thomas",
+        "Balance": "10000",
+        "Password": "4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2",
+        "Role": "Admin",
+        "Livret": false,
+        "Balance_livret": null,
+        "Livret_last_update": "2025-10-03"
     },
-    {
-        "0579366054": {
-            "name": "Leo",
-            "balance": "123",
-            "password": "4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2",
-            "role": "User",
-            "epargne": true,
-            "balance_epargne": "10",
-            "Livret_last_update": "2025-10-03"
-        }
+    "0049772960": {
+        "Name": "Kevin",
+        "Balance": "123",
+        "Password": "4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2",
+        "Role": "User",
+        "Livret": true,
+        "Balance_livret": "123",
+        "Livret_last_update": "2025-10-03"
     }
-]
+}

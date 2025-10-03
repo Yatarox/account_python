@@ -77,6 +77,12 @@ class UserBody(ctk.CTkFrame):
         self.send_money = ctk.CTkButton(self, text="Effectuer un virement", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR)
         self.send_money.grid(row=2, column=1, pady=(20, 0))
 
+        self.create_card = ctk.CTkButton(self, text="Créer ma carte bancaire", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR)
+        self.create_card.grid(row=3, column=0, pady=(20, 0))
+
+        self.close_livret = ctk.CTkButton(self, text="Clôturer le livret A", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR)
+        self.close_livret.grid(row=3, column=1, pady=(20, 0))
+
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
     

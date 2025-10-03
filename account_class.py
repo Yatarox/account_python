@@ -29,11 +29,9 @@ class Account:
             if isinstance(data, dict):
                 for account_number, account_data in data.items():
                     if account_data["Name"] == self.__name and account_data["Password"] == self.__password:
-                        name = account_data["Name"]
                         return True, account_data['Role']
     
     def create(self):
-        
         with open('account.json', 'r', encoding="utf-8") as f:
 
             data_exist = json.load(f)
@@ -47,23 +45,22 @@ class Account:
             else:
                 self.__livret = False
                 self.__balance_livret = None
-            new_data = {self.__account_number: {"Name": self.__name, "Balance": self.__balance, "Password": self.__password,  "Role": self.__role, "Livret": self.__livret, "Balance_livret": self.__balance_livret, "Livret_last_update": self.__livret_last_update}}
+            new_data = {"Name": self.__name, "Balance": self.__balance, "Password": self.__password,  "Role": self.__role, "Livret": self.__livret, "Balance_livret": self.__balance_livret, "Livret_last_update": self.__livret_last_update}
 
             if isinstance(data_exist, list):
                 data_exist.append(new_data)
-                data_to_insert = data_exist
             else:
-                data_to_insert = [data_exist, new_data]
+                data_exist[self.__account_number] = new_data
 
             f.close()
 
             with open('account.json', 'w+', encoding="utf-8") as file:
-                json.dump(data_to_insert, file, indent=4, ensure_ascii=False)
+                json.dump(data_exist, file, indent=4, ensure_ascii=False)
 
                 file.close()
         
         print("L'utilisateur à été enregistré avec succès")
-        
+
     #Check valide input
     def __validate_currency(self, currency):
         if currency not in self.VALID_CURRENCIES:
