@@ -9,7 +9,6 @@ BACKGROUND_COLOR = "#111827"
 TEXT_COLOR = "white"
 PLACEHOLDER_COLOR = "#9CA3AF"
 
-
 class Header(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master, fg_color=BACKGROUND_COLOR)
@@ -47,20 +46,25 @@ class BaseBody(ctk.CTkFrame):
         print(hashed_password)
 
         account = Account(name=username, password=pwd)
-       
-        account_auth, role = account.authentificate()
-        if account_auth and role == "Admin":
+        account_auth, current_user = account.authentificate()
+
+        number_account_current_user = next(iter(current_user))
+
+        if account_auth and current_user[number_account_current_user]["Role"] == "Admin":
             self.switch_body("AdminBody")
-        elif account_auth and role == "User":
-            print("Switch vers Userbody")
-            self.switch_body("UserBody")
+        elif account_auth and current_user[number_account_current_user]["Role"] == "User":
+            self.switch_body("UserBody", current_user)
+
+            # Voir pour créer une var current_user et la passer à switch_body
+            # puis de switch_body à l'instance de body en cours pour pouvoir garder l'user connecté en cache
 
 class UserBody(ctk.CTkFrame):
-    def __init__(self, master, switch_body):
+    def __init__(self, master, switch_body, current_user):
         super().__init__(master, fg_color=BACKGROUND_COLOR)
 
         self.switch_body = switch_body
         #self.current_id = current_id
+        self.current_user = current_user
 
         self.name = ctk.CTkLabel(self, text="Bienvenu dans votre espace client", font=('Arial', 20), width=250, height=40, justify='center', text_color=TEXT_COLOR)
         self.name.grid(row=0, column=0, columnspan=2, padx=20, pady=(40, 40), sticky="ew")
@@ -77,7 +81,7 @@ class UserBody(ctk.CTkFrame):
         self.send_money = ctk.CTkButton(self, text="Effectuer un virement", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR)
         self.send_money.grid(row=2, column=1, pady=(20, 0))
 
-        self.create_card = ctk.CTkButton(self, text="Créer ma carte bancaire", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR)
+        self.create_card = ctk.CTkButton(self, text="Créer ma carte bancaire", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR, command=self.call_generate_card)
         self.create_card.grid(row=3, column=0, pady=(20, 0))
 
         self.close_livret = ctk.CTkButton(self, text="Clôturer le livret A", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR)
@@ -90,6 +94,22 @@ class UserBody(ctk.CTkFrame):
         account = Account(self.current_id)
         if account: 
             pass"""
+
+    def call_generate_card(self):
+        account_number=next(iter(self.current_user))
+        account = Account(account_number=account_number, 
+                          password=self.current_user[account_number]["Password"],
+                          role=self.current_user[account_number]["Role"],
+                          name=self.current_user[account_number]["Name"],
+                          balance=self.current_user[account_number]["Balance"],
+                          livret=self.current_user[account_number]["Livret"],
+                          balance_livret=self.current_user[account_number]["Balance_livret"],
+                          livret_last_update=self.current_user[account_number]["Livret_last_update"])
+        print(account)
+        path_card = account.generate_card()
+        print(path_card)
+        
+        # Envoyer le current user dans la fonction generate_card, puis afficher sa carte grâce à son account_number stocké dans le cache
 
 class AdminBody(ctk.CTkFrame):
     def __init__(self, master, switch_body):
@@ -189,7 +209,7 @@ class App(ctk.CTk):
         self.footer = Footer(master=self)
         self.footer.pack(side="bottom", fill="x")
 
-    def show_body(self, body):
+    def show_body(self, body, current_user=None):
         if self.current_body is not None:
             self.current_body.pack_forget()
 
@@ -198,6 +218,6 @@ class App(ctk.CTk):
         elif body == "AdminBody":
             self.current_body = AdminBody(self, self.show_body)
         elif body == "UserBody":
-            self.current_body = UserBody(self, self.show_body)
+            self.current_body = UserBody(self, self.show_body, current_user)
 
         self.current_body.pack(fill="both", expand=True)
