@@ -105,13 +105,18 @@ class UserBody(ctk.CTkFrame):
                           livret=self.current_user[account_number]["Livret"],
                           balance_livret=self.current_user[account_number]["Balance_livret"],
                           livret_last_update=self.current_user[account_number]["Livret_last_update"])
-        print(account)
         path_card = account.generate_card()
-        print(path_card)
         
         # Envoyer le current user dans la fonction generate_card, puis afficher sa carte grâce à son account_number stocké dans le cache
 
 class AdminBody(ctk.CTkFrame):
+    def on_check(self):
+        if self.epargne.get():          # coché -> afficher
+            self.balance_epargne.grid(row=3, column=0, columnspan=2, padx=20, pady=(15, 30), sticky="ew")
+            #self.balance_epargne.focus()
+        else:                      # décoché -> masquer
+            self.balance_epargne.grid_remove()
+
     def __init__(self, master, switch_body):
         super().__init__(master, fg_color=BACKGROUND_COLOR)
 
@@ -119,7 +124,7 @@ class AdminBody(ctk.CTkFrame):
         self.epargne_var = ctk.IntVar(value=0)
 
         self.name = ctk.CTkEntry(self, placeholder_text="Prénom de l'utilisateur", width=250, height=40, justify='center', text_color=TEXT_COLOR)
-        self.name.grid(row=0, column=0, padx=20, pady=(40, 15), sticky="ew")
+        self.name.grid(row=0, column=0, padx=20, pady=(40, 15), sticky="ew", columnspan=2)
 
         self.password = ctk.CTkEntry(self, placeholder_text="Mot de passe de l'utilisateur", show="*", width=250, height=40, justify='center', text_color=TEXT_COLOR)
         self.password.grid(row=1, column=0, padx=20, pady=15, sticky="ew")
@@ -132,12 +137,11 @@ class AdminBody(ctk.CTkFrame):
         self.role.set("-- Sélectionnez un rôle --")
         self.role.grid(row=2, column=0, padx=20, pady=15, sticky="ew")
 
-        self.epargne = ctk.CTkCheckBox(self, text="Ouvrir un livret A", variable=self.epargne_var, width=250, height=40, text_color=TEXT_COLOR, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR)
+        self.epargne = ctk.CTkCheckBox(self, text="Ouvrir un livret A", variable=self.epargne_var, width=250, height=40, text_color=TEXT_COLOR, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, command=self.on_check)
         self.epargne.grid(row=2, column=1, padx=20, pady=15, sticky="w")
 
         self.balance_epargne = ctk.CTkEntry(self, placeholder_text="Montant épargne initial", width=250, height=40, justify='center', text_color=TEXT_COLOR)
-        self.balance_epargne.grid(row=3, column=0, columnspan=2, padx=20, pady=(15, 30), sticky="ew")
-
+        
         self.validate = ctk.CTkButton(self, text="Valider l'inscription", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR, command=self.validate_user)
         self.validate.grid(row=4, column=0, columnspan=2, pady=(0, 20))
 
