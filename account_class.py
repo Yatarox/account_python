@@ -38,7 +38,7 @@ class Account:
                 pass
 
             new_data = {"Name": self.__name, "Balance": self.__balance, "Password": self.__password,  "Role": self.__role, "Livret": self.__livret, "Balance_livret": self.__balance_livret, "Livret_last_update": self.__livret_last_update}
-
+            print(new_data)
             if isinstance(data_exist, list):
                 data_exist.append(new_data)
             else:
@@ -109,7 +109,7 @@ class Account:
     #Basic feature
     def withdraw(self, amount):
         self.__validate_amount(amount)
-
+        amount = int(amount)
         if self.__balance >= amount:
             self.__balance -= amount
             return self.__balance
@@ -118,6 +118,9 @@ class Account:
 
     def deposit(self, amount):
         self.__validate_amount(amount)
+        amount = int(amount)
+        if self.__balance == None:
+            self.__balance = 0
         try:
             if amount < 0:
                 return "Le montant ne peut pas être inférieur à 0"
