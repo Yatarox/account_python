@@ -74,6 +74,56 @@ class AddMoney(ctk.CTkFrame):
             self.current_account = Account(account_number=account_number, name=name, balance=balance, password=password, role=role, livret=livret, balance_livret=balance_livret, livret_last_update=livret_last_update)
             self.current_account.update()
 
+class WithDrawMoney(ctk.CTkFrame):
+    def __init__(self, master, switch_body, current_user):
+        super().__init__(master, fg_color=BACKGROUND_COLOR)
+
+        self.switch_body = switch_body
+        self.current_user = current_user
+        #print(f"AddMoney : {self.current_user}")
+
+        self.amount = ctk.CTkEntry(self, placeholder_text="Entrez le montant à retirer", width=200, height=40, justify='center', text_color=TEXT_COLOR)
+        self.amount.pack(pady=(50, 15))
+
+        self.validate = ctk.CTkButton(self, text='Valider', width=200, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR, command=self.withdrawMoney)
+        self.validate.pack(pady=(0, 0))
+    
+    def withdrawMoney(self):
+        print(f"addMoney function current user : {self.current_user.values()}")
+        attrs = list(self.current_user.values())
+        #print(f"attrs = {attrs}")
+        account_number = list(self.current_user.keys())
+        account_number = account_number[0]
+        name = attrs[0]['Name']
+        balance = attrs[0]['Balance']
+        password = attrs[0]['Password']
+        role = attrs[0]['Role']
+        livret = attrs[0]['Livret']
+        balance_livret = attrs[0]['Balance_livret']
+        livret_last_update = attrs[0]['Livret_last_update']
+        """print(f"Le nom du l'utilisateur est : {name}")
+        print(balance)
+        print(password)
+        print(role)
+        print(livret)
+        print(balance_livret)
+        print(livret_last_update)"""
+        amount = self.amount.get()
+        try:
+            amount = int(amount)
+        except:
+            amount = None
+        self.current_account = Account(account_number=account_number, name=name, balance=balance, password=password, role=role, livret=livret, balance_livret=balance_livret, livret_last_update=livret_last_update)
+        balance = self.current_account.withdraw(amount=amount)
+
+        if not isinstance(balance, (int, float)):
+            message = balance
+            self.error = ctk.CTkLabel(self, text=message, width=150, height=20, justify='center', text_color=ERROR_COLOR)
+            self.error.pack(pady=(10, 15))
+        else:
+            self.current_account = Account(account_number=account_number, name=name, balance=balance, password=password, role=role, livret=livret, balance_livret=balance_livret, livret_last_update=livret_last_update)
+            self.current_account.update()
+
 
 class BaseBody(ctk.CTkFrame):
     def __init__(self, master, switch_body):
@@ -128,7 +178,7 @@ class UserBody(ctk.CTkFrame):
         self.dump = ctk.CTkButton(self, text="Afficher les informations du compte", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR)
         self.dump.grid(row=1, column=0, pady=(20, 0))
 
-        self.withdraw = ctk.CTkButton(self, text="Retirer de l'argent", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR)
+        self.withdraw = ctk.CTkButton(self, text="Retirer de l'argent", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR, command=self.on_click_withdraw_money)
         self.withdraw.grid(row=1, column=1, pady=(20, 0))
 
         self.deposit = ctk.CTkButton(self, text="Déposer de l'argent", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR,  command=self.on_click_add_money)
@@ -150,6 +200,11 @@ class UserBody(ctk.CTkFrame):
         self.add_money = PopUp(body="AddMoney", current_user=self.current_user)
         self.add_money.mainloop()
         self.add_money.show_body("AddMoney", self.current_user)
+    
+    def on_click_withdraw_money(self):
+        self.withdraw_money = PopUp(body="WithDrawMoney", current_user=self.current_user)
+        self.withdraw_money.mainloop()
+        self.withdraw_money.show_body("WithDrawMoney", self.current_user)
 
     def call_generate_card(self):
         account_number=next(iter(self.current_user))
@@ -268,7 +323,8 @@ class PopUp(ctk.CTk):
         if body == "AddMoney":
             self.current_body = AddMoney(self, self.show_body, self.current_user)
             #print(f"PopUp : {self.current_user}")
-
+        elif body == "WithDrawMoney":
+            self.current_body = WithDrawMoney(self, self.show_body, self.current_user)
         self.current_body.pack(fill="both", expand=True)
 
 

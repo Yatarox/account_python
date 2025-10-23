@@ -101,16 +101,16 @@ class Account:
             return "Le montant ne peut pas être vide"
     
     #Basic feature
-    def withdraw(self, currency, amount):
+    def withdraw(self, amount, currency="eur"):
         self.__validate_currency(currency)
-        amount = self.__validate_amount(amount)
+        self.__validate_amount(amount)
 
         if self.__balance >= amount:
             retire = self.convert("eur", currency, amount)
             self.__balance -= amount
-            return self.__balance, retire
+            return self.__balance
         else:
-            print("Fonds insuffisants.")
+            return "Vous n'avez pas les fonds nécessaires"
 
     def deposit(self, amount, currency="eur"):
         self.__validate_currency(currency)
