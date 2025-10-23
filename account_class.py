@@ -18,10 +18,8 @@ class Account:
         self.__balance = balance
         self.__livret = livret
         self.__livret_last_update = livret_last_update
-        # Initialise l'historique des transactions (liste vide par défaut)
         self.__transaction_history = transaction_history if transaction_history is not None else []
     
-    #Check valide input
     def __validate_currency(self, currency):
         if currency not in self.VALID_CURRENCIES:
             raise ValueError("Devise non autorisée")
@@ -30,7 +28,6 @@ class Account:
         if amount <= 0:
             raise ValueError("Montant doit être positif")
     
-    # Méthode pour ajouter une transaction à l'historique
     def __add_transaction(self, transaction_type, currency, amount, details=""):
         """
         Ajoute une transaction à l'historique
@@ -49,7 +46,6 @@ class Account:
         }
         self.__transaction_history.append(transaction)           # Ajoute à la liste
         
-        # Garde seulement les 10 dernières transactions pour éviter que ça devienne trop lourd
         if len(self.__transaction_history) > 10:
             self.__transaction_history = self.__transaction_history[-10:]
     #Basic feature
@@ -59,7 +55,6 @@ class Account:
 
         if self.__balance.get(currency, 0) >= amount:
             self.__balance[currency] -= amount
-            # Enregistre la transaction dans l'historique
             self.__add_transaction("Retrait", currency, amount, f"Solde restant: {self.__balance[currency]:.2f}")
             print(f"Nouveau solde en {currency.upper()}: {self.__balance[currency]:.2f}")
         else:
@@ -70,7 +65,6 @@ class Account:
         self.__validate_amount(amount)
 
         self.__balance[currency] = self.__balance.get(currency, 0) + amount
-        # Enregistre la transaction dans l'historique
         self.__add_transaction("Dépôt", currency, amount, f"Nouveau solde: {self.__balance[currency]:.2f}")
         print(f"Nouveau solde en {currency.upper()}: {self.__balance[currency]:.2f}")
 
@@ -89,7 +83,6 @@ class Account:
         print("\n=== Historique des transactions ===")
         print(f"Affichage des {len(self.__transaction_history)} dernières opérations :\n")
         
-        # Affiche les transactions de la plus récente à la plus ancienne
         for i, transaction in enumerate(reversed(self.__transaction_history), 1):
             print(f"{i}. {transaction['date']} - {transaction['type']}")
             print(f"   {transaction['amount']:.2f} {transaction['currency']}")
@@ -123,7 +116,6 @@ class Account:
 
         self.__livret += amount_to_livret
         self.__livret_last_update = datetime.today().strftime('%Y-%m-%d')
-        # Enregistre la transaction dans l'historique
         self.__add_transaction("Dépôt livret", "eur", amount_to_livret, f"Nouveau solde livret: {self.__livret:.2f}")
         print(f"{amount_to_livret:.2f} EUR déposés sur le livret. Nouveau solde livret : {self.__livret:.2f} EUR")
 
@@ -158,7 +150,6 @@ class Account:
         self.__balance["eur"] = self.__balance.get("eur", 0) + amount
         self.__livret_last_update = datetime.today().strftime('%Y-%m-%d')
         
-        # Enregistre la transaction dans l'historique
         self.__add_transaction("Retrait livret", "eur", amount, f"Solde livret: {self.__livret:.2f}")
 
         print(f"Vous avez retiré {amount:.2f} EUR du livret et il a été ajouté au compte courant.")
@@ -190,14 +181,13 @@ class Account:
         self.__balance[from_currency] -= amount
         self.__balance[to_currency] = self.__balance.get(to_currency, 0) + converted_amount
 
-        # Enregistre la transaction dans l'historique
         self.__add_transaction("Conversion", from_currency, amount, f"→ {to_currency.upper()}: {converted_amount:.2f}")
 
         print(f"{amount} {from_currency.upper()} = {converted_amount:.2f} {to_currency.upper()}")
         print(f"Nouveau solde : {self.__balance}")
     
 
-    #save data on json
+
     def dump_data(self):
         try:
             with open('account.json', 'r') as file:
@@ -239,7 +229,6 @@ class Account:
         receipt = "\n".join(lines)
         print(receipt)  # affiche dans la console
 
-        # enregistre le dernier reçu en fichier (écrase à chaque fois)
         try:
             with open("last_receipt.txt", "w", encoding="utf-8") as f:
                 f.write(receipt)
@@ -397,7 +386,6 @@ class Account:
                 livret = account_data["Livret"]
                 livret_last_update = account_data["Livret_last_update"]
                 name = account_data["Name"]
-                # Récupère l'historique s'il existe, sinon liste vide
                 transaction_history = account_data.get("Transaction_history", [])
                 print(f"Bienvenue {account_data["Name"]} !")
                 return Account(name, account_number, balance, livret, livret_last_update, transaction_history)
