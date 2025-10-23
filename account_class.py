@@ -30,8 +30,14 @@ class Account:
                 self.__livret_last_update = datetime.today().strftime('%Y-%m-%d')
             else:
                 self.__livret_last_update = None
+            
+            try:
+                self.__balance = int(self.__balance)
+                self.__balance_livret = int(self.__balance_livret)
+            except TypeError:
+                pass
 
-            new_data = {"Name": self.__name, "Balance": int(self.__balance), "Password": self.__password,  "Role": self.__role, "Livret": self.__livret, "Balance_livret": int(self.__balance_livret), "Livret_last_update": self.__livret_last_update}
+            new_data = {"Name": self.__name, "Balance": self.__balance, "Password": self.__password,  "Role": self.__role, "Livret": self.__livret, "Balance_livret": self.__balance_livret, "Livret_last_update": self.__livret_last_update}
 
             if isinstance(data_exist, list):
                 data_exist.append(new_data)
@@ -129,9 +135,12 @@ class Account:
     
     def close_livret(self):
         if self.__livret == False:
+            #print("livret = False")
             return False
         else:
             self.__livret = False
+            print(type(self.__balance))
+            print(type(self.__balance_livret))
             self.__balance += self.__balance_livret
             self.__balance_livret = None
             self.__livret_last_update = None

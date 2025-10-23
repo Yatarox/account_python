@@ -89,7 +89,7 @@ class WithDrawMoney(ctk.CTkFrame):
         self.validate.pack(pady=(0, 0))
     
     def withdrawMoney(self):
-        print(f"addMoney function current user : {self.current_user.values()}")
+        #print(f"addMoney function current user : {self.current_user.values()}")
         attrs = list(self.current_user.values())
         #print(f"attrs = {attrs}")
         account_number = list(self.current_user.keys())
@@ -123,6 +123,48 @@ class WithDrawMoney(ctk.CTkFrame):
         else:
             self.current_account = Account(account_number=account_number, name=name, balance=balance, password=password, role=role, livret=livret, balance_livret=balance_livret, livret_last_update=livret_last_update)
             self.current_account.update()
+
+class DisplayCard(ctk.CTkFrame):
+    def __init__(self, master, switch_body, current_user):
+        super().__init__(master, fg_color=BACKGROUND_COLOR)
+
+        self.switch_body = switch_body
+        self.current_user = current_user
+        #print(f"AddMoney : {self.current_user}")
+        self.display = ctk.CTkButton(self, text='Afficher ma carte', width=200, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR, command=self.create_card)
+        self.display.pack(pady=(160, 0))
+    
+    def create_card(self):
+        attrs = list(self.current_user.values())
+        #print(f"attrs = {attrs}")
+        account_number = list(self.current_user.keys())
+        account_number = account_number[0]
+        name = attrs[0]['Name']
+        balance = attrs[0]['Balance']
+        password = attrs[0]['Password']
+        role = attrs[0]['Role']
+        livret = attrs[0]['Livret']
+        balance_livret = attrs[0]['Balance_livret']
+        livret_last_update = attrs[0]['Livret_last_update']
+
+        self.current_account = Account(account_number=account_number, name=name, balance=balance, password=password, role=role, livret=livret, balance_livret=balance_livret, livret_last_update=livret_last_update)
+        self.path_card = self.current_account.generate_card()
+
+        try:
+            self.display.destroy()
+            self._pil_img = Image.open(self.path_card)
+            self._pil_img.thumbnail((360, 360), Image.LANCZOS)
+            print(self._pil_img, "debug")
+            self.ctk_img = ctk.CTkImage(light_image=self._pil_img, dark_image=self._pil_img, size=self._pil_img.size)
+            self.label = ctk.CTkLabel(self, text="", image=self.ctk_img)
+            self.label.pack()
+
+        except Exception as e:
+            label = ctk.CTkLabel(self, text=f"Impossible de charger l'image:\n{e}", text_color="red")
+            label.pack(pady=(50, 0))
+
+        close_btn = ctk.CTkButton(self, text="Fermer", command=self.destroy)
+        close_btn.pack(pady=(8, 0))
 
 
 class BaseBody(ctk.CTkFrame):
@@ -184,18 +226,23 @@ class UserBody(ctk.CTkFrame):
         self.deposit = ctk.CTkButton(self, text="Déposer de l'argent", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR,  command=self.on_click_add_money)
         self.deposit.grid(row=2, column=0, pady=(20, 0))
 
-        self.send_money = ctk.CTkButton(self, text="Effectuer un virement", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR)
+        self.send_money = ctk.CTkButton(self, text="Effectuer un virement sur le livret", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR)
         self.send_money.grid(row=2, column=1, pady=(20, 0))
 
-        self.create_card = ctk.CTkButton(self, text="Créer ma carte bancaire", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR, command=self.call_generate_card)
+        self.create_card = ctk.CTkButton(self, text="Créer ma carte bancaire", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR, command=self.on_click_create_card)
         self.create_card.grid(row=3, column=0, pady=(20, 0))
 
-        self.close_livret = ctk.CTkButton(self, text="Clôturer le livret A", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR)
+        self.close_livret = ctk.CTkButton(self, text="Clôturer le livret A", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR, command=self.on_click_close_livret)
         self.close_livret.grid(row=3, column=1, pady=(20, 0))
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
-    
+
+    def on_click_create_card(self):
+        self.display_card = PopUp(body="DisplayCard", current_user=self.current_user)
+        self.display_card.mainloop()
+        self.display_card.show_body("DisplayCard", self.current_user)
+
     def on_click_add_money(self):
         self.add_money = PopUp(body="AddMoney", current_user=self.current_user)
         self.add_money.mainloop()
@@ -205,6 +252,29 @@ class UserBody(ctk.CTkFrame):
         self.withdraw_money = PopUp(body="WithDrawMoney", current_user=self.current_user)
         self.withdraw_money.mainloop()
         self.withdraw_money.show_body("WithDrawMoney", self.current_user)
+
+    def on_click_close_livret(self):
+        attrs = list(self.current_user.values())
+        account_number = list(self.current_user.keys())
+        account_number = account_number[0]
+        name = attrs[0]['Name']
+        balance = attrs[0]['Balance']
+        password = attrs[0]['Password']
+        role = attrs[0]['Role']
+        livret = attrs[0]['Livret']
+        balance_livret = attrs[0]['Balance_livret']
+        livret_last_update = attrs[0]['Livret_last_update']
+
+        self.current_account = Account(account_number=account_number, name=name, balance=balance, password=password, role=role, livret=livret, balance_livret=balance_livret, livret_last_update=livret_last_update)
+        try:
+            livret, balance, balance_livret, livret_last_update = self.current_account.close_livret()
+            self.current_account = Account(account_number=account_number, name=name, balance=balance, password=password, role=role, livret=livret, balance_livret=balance_livret, livret_last_update=livret_last_update)
+            self.current_account.update()
+        except TypeError as e:
+            #print(e)
+            message = "Vous n'avez aucun livret ouvert"
+            self.error = ctk.CTkLabel(self, text=message, width=150, height=20, justify='center', text_color=ERROR_COLOR)
+            self.error.grid(row=4, column=0, columnspan=2, pady=(20, 0))
 
     def call_generate_card(self):
         account_number=next(iter(self.current_user))
@@ -305,7 +375,7 @@ class Footer(ctk.CTkFrame):
         self.links = ctk.CTkLabel(container, text="CGU   |   Contact   |   Aide", font=('Calibri Light', 12), text_color=PLACEHOLDER_COLOR, fg_color='transparent')
         self.links.pack(side="right", padx=(0, 20))
 
-class PopUp(ctk.CTk):
+class PopUp(ctk.CTkToplevel):
     def __init__(self, body, current_user):
         super().__init__(fg_color=BACKGROUND_COLOR)
         self.geometry('300x200')
@@ -325,6 +395,9 @@ class PopUp(ctk.CTk):
             #print(f"PopUp : {self.current_user}")
         elif body == "WithDrawMoney":
             self.current_body = WithDrawMoney(self, self.show_body, self.current_user)
+        elif body == "DisplayCard":
+            self.current_body = DisplayCard(self, self.show_body, self.current_user)
+
         self.current_body.pack(fill="both", expand=True)
 
 
