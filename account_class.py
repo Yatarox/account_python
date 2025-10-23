@@ -4,6 +4,7 @@ import json
 import hashlib
 from datetime import datetime
 from PIL import Image
+from PIL import ImageFont
 from PIL import ImageDraw
 
 class Account:
@@ -11,149 +12,120 @@ class Account:
     LIVRET_TAUX = 0.03
     LIVRET_PLAFOND = 22950
 
-    def __init__(self, password=None, account_number=None, role="User", name=None, balance=None, livret=None, balance_livret=None, livret_last_update=None):
+    def __init__(self, name, account_number, balance, livret, livret_last_update, transaction_history=None):
         self.__name = name
         self.__account_number = account_number
         self.__balance = balance
         self.__livret = livret
         self.__livret_last_update = livret_last_update
-        self.__password = password
-        self.__role = role
-        self.__balance_livret = balance_livret
-
-    def update(self):
-        with open('account.json', 'r', encoding="utf-8") as f:
-
-            data_exist = json.load(f)
-
-            if self.__livret == True:
-                self.__livret_last_update = datetime.today().strftime('%Y-%m-%d')
-            else:
-                self.__livret_last_update = None
-
-            new_data = {"Name": self.__name, "Balance": int(self.__balance), "Password": self.__password,  "Role": self.__role, "Livret": self.__livret, "Balance_livret": int(self.__balance_livret), "Livret_last_update": self.__livret_last_update}
-
-            if isinstance(data_exist, list):
-                data_exist.append(new_data)
-            else:
-                data_exist[self.__account_number] = new_data
-
-            f.close()
-
-            with open('account.json', 'w+', encoding="utf-8") as file:
-                json.dump(data_exist, file, indent=4, ensure_ascii=False)
-
-                file.close()
-        
-        print("Le compte de l'utilisateur a été mis a jour avec succès")
+        # Initialise l'historique des transactions (liste vide par défaut)
+        self.__transaction_history = transaction_history if transaction_history is not None else []
     
-    def authentificate(self):
-        with open("account.json", 'r', encoding="utf-8") as file:
-            data = json.load(file)
-
-            if isinstance(data, dict):
-                for account_number, account_data in data.items():
-                    if account_data["Name"] == self.__name and account_data["Password"] == self.__password:
-                        current_user = {account_number: account_data}
-                        print(current_user)
-                        return True, current_user
-    
-    def create(self):
-        with open('account.json', 'r', encoding="utf-8") as f:
-
-            data_exist = json.load(f)
-
-            if self.__livret_last_update == None:
-                self.__livret_last_update = datetime.today().strftime('%Y-%m-%d')
-
-            self.__account_number = self.generate_account_number()
-            if self.__livret == 1:
-                self.__livret = True
-            else:
-                self.__livret = False
-                self.__balance_livret = None
-            new_data = {"Name": self.__name, "Balance": int(self.__balance), "Password": self.__password,  "Role": self.__role, "Livret": self.__livret, "Balance_livret": int(self.__balance_livret), "Livret_last_update": self.__livret_last_update}
-
-            if isinstance(data_exist, list):
-                data_exist.append(new_data)
-            else:
-                data_exist[self.__account_number] = new_data
-
-            f.close()
-
-            with open('account.json', 'w+', encoding="utf-8") as file:
-                json.dump(data_exist, file, indent=4, ensure_ascii=False)
-
-                file.close()
-        
-        print("L'utilisateur à été enregistré avec succès")
-
     #Check valide input
     def __validate_currency(self, currency):
         if currency not in self.VALID_CURRENCIES:
             raise ValueError("Devise non autorisée")
 
     def __validate_amount(self, amount):
-        try: 
-            if amount <= 0:
-                raise ValueError("Montant doit être positif")
-        except TypeError:
-            return "Le montant ne peut pas être vide"
+        if amount <= 0:
+            raise ValueError("Montant doit être positif")
     
+    # Méthode pour ajouter une transaction à l'historique
+    def __add_transaction(self, transaction_type, currency, amount, details=""):
+        """
+        Ajoute une transaction à l'historique
+        transaction_type: type d'opération (ex: "Dépôt", "Retrait", "Conversion")
+        currency: devise concernée
+        amount: montant de l'opération
+        details: informations supplémentaires (optionnel)
+        """
+        from datetime import datetime
+        transaction = {
+            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # Date et heure actuelles
+            "type": transaction_type,                              # Type d'opération
+            "currency": currency.upper(),                         # Devise en majuscules
+            "amount": amount,                                     # Montant
+            "details": details                                    # Détails supplémentaires
+        }
+        self.__transaction_history.append(transaction)           # Ajoute à la liste
+        
+        # Garde seulement les 10 dernières transactions pour éviter que ça devienne trop lourd
+        if len(self.__transaction_history) > 10:
+            self.__transaction_history = self.__transaction_history[-10:]
     #Basic feature
-    def withdraw(self, amount):
+    def withdraw(self, currency, amount):
+        self.__validate_currency(currency)
         self.__validate_amount(amount)
 
-        if self.__balance >= amount:
-            self.__balance -= amount
-            return self.__balance
+        if self.__balance.get(currency, 0) >= amount:
+            self.__balance[currency] -= amount
+            # Enregistre la transaction dans l'historique
+            self.__add_transaction("Retrait", currency, amount, f"Solde restant: {self.__balance[currency]:.2f}")
+            print(f"Nouveau solde en {currency.upper()}: {self.__balance[currency]:.2f}")
         else:
-            return "Vous n'avez pas les fonds nécessaires"
+            print("Fonds insuffisants.")
 
-    def deposit(self, amount):
+    def deposit(self, currency, amount):
+        self.__validate_currency(currency)
         self.__validate_amount(amount)
-        try:
-            if amount < 0:
-                return "Le montant ne peut pas être inférieur à 0"
-            elif amount == 0:
-                return "Le montant doit être au minimum de 1"
-            else:
-                self.__balance += amount
-                return self.__balance
-        except:
-            return "Le montant ne peut pas être vide"
+
+        self.__balance[currency] = self.__balance.get(currency, 0) + amount
+        # Enregistre la transaction dans l'historique
+        self.__add_transaction("Dépôt", currency, amount, f"Nouveau solde: {self.__balance[currency]:.2f}")
+        print(f"Nouveau solde en {currency.upper()}: {self.__balance[currency]:.2f}")
 
     def dump(self):
-        print(f"Utilisateur: {self.__name} | N° de compte: {self.__account_number} | Balance : {self.__balance}")
+        print(f"Utilisateur: {self.__name} | N° de compte: {self.__account_number}")
+        for cur, val in self.__balance.items():
+            print(f"   {cur.upper()}: {val:.2f}")
         print(f"   Livret EUR: {self.__livret:.2f} (dernière maj : {self.__livret_last_update})")
     
-    def close_livret(self):
-        if self.__livret == False:
-            return False
-        else:
-            self.__livret = False
-            self.__balance += self.__balance_livret
-            self.__balance_livret = None
-            self.__livret_last_update = None
-            return self.__livret, self.__balance_livret, self.__balance_livret, self.__livret_last_update
-
+    def show_transaction_history(self):
+        """Affiche les 10 dernières transactions"""
+        if not self.__transaction_history:
+            print("Aucune transaction enregistrée.")
+            return
+        
+        print("\n=== Historique des transactions ===")
+        print(f"Affichage des {len(self.__transaction_history)} dernières opérations :\n")
+        
+        # Affiche les transactions de la plus récente à la plus ancienne
+        for i, transaction in enumerate(reversed(self.__transaction_history), 1):
+            print(f"{i}. {transaction['date']} - {transaction['type']}")
+            print(f"   {transaction['amount']:.2f} {transaction['currency']}")
+            if transaction['details']:
+                print(f"   {transaction['details']}")
+            print()  # Ligne vide pour la lisibilité
+    
     #Livret feature 
-    def deposit_livret(self,amount):
+    def deposit_livret(self, currency, amount):
+        self.__validate_currency(currency)
         self.__validate_amount(amount)
 
-        if self.__balance < amount:
+        if self.__balance.get(currency, 0) < amount:
             print("Fonds insuffisants.")
             return
 
         self.apply_interest()
 
-        if self.__livret + amount > self.LIVRET_PLAFOND:
+        if currency != "eur":
+            print(f"Conversion de {currency.upper()} en EUR pour le livret...")
+            before_eur = self.__balance.get("eur", 0)
+            self.convert(currency, "eur", amount)
+            amount_to_livret = self.__balance.get("eur", 0) - before_eur
+        else:
+            self.__balance["eur"] -= amount
+            amount_to_livret = amount
+
+        if self.__livret + amount_to_livret > self.LIVRET_PLAFOND:
             print("Dépassement du plafond du livret.")
             return
 
-        self.__livret += amount
+        self.__livret += amount_to_livret
         self.__livret_last_update = datetime.today().strftime('%Y-%m-%d')
-        print(f"{amount} EUR déposés sur le livret. Nouveau solde livret : {self.__livret:.2f} EUR")
+        # Enregistre la transaction dans l'historique
+        self.__add_transaction("Dépôt livret", "eur", amount_to_livret, f"Nouveau solde livret: {self.__livret:.2f}")
+        print(f"{amount_to_livret:.2f} EUR déposés sur le livret. Nouveau solde livret : {self.__livret:.2f} EUR")
 
     def calculate_interest(self):
         last_update = datetime.strptime(self.__livret_last_update, "%Y-%m-%d")
@@ -185,6 +157,9 @@ class Account:
         self.__livret -= amount
         self.__balance["eur"] = self.__balance.get("eur", 0) + amount
         self.__livret_last_update = datetime.today().strftime('%Y-%m-%d')
+        
+        # Enregistre la transaction dans l'historique
+        self.__add_transaction("Retrait livret", "eur", amount, f"Solde livret: {self.__livret:.2f}")
 
         print(f"Vous avez retiré {amount:.2f} EUR du livret et il a été ajouté au compte courant.")
         print(f"Nouveau solde livret : {self.__livret:.2f} EUR")
@@ -212,7 +187,14 @@ class Account:
 
         rate = rates[to_currency]
         converted_amount = amount * rate
-        return converted_amount
+        self.__balance[from_currency] -= amount
+        self.__balance[to_currency] = self.__balance.get(to_currency, 0) + converted_amount
+
+        # Enregistre la transaction dans l'historique
+        self.__add_transaction("Conversion", from_currency, amount, f"→ {to_currency.upper()}: {converted_amount:.2f}")
+
+        print(f"{amount} {from_currency.upper()} = {converted_amount:.2f} {to_currency.upper()}")
+        print(f"Nouveau solde : {self.__balance}")
     
 
     #save data on json
@@ -229,7 +211,8 @@ class Account:
             "Name": self.__name,
             "Balance": self.__balance,
             "Livret": self.__livret,
-            "Livret_last_update": self.__livret_last_update
+            "Livret_last_update": self.__livret_last_update,
+            "Transaction_history": self.__transaction_history
         }
 
         json_str = json.dumps(data, sort_keys=True)
@@ -238,6 +221,31 @@ class Account:
 
         with open('account.json', 'w') as file:
             json.dump(data, file, indent=4)
+
+    def print_receipt(self, op_type: str, currency: str, amount: float):
+        """Crée/affiche un mini reçu de l'opération et l'enregistre dans last_receipt.txt"""
+        now = datetime.today().strftime("%Y-%m-%d %H:%M:%S")
+        # solde current pour la devise (0 si inexistante)
+        cur_balance = self.__balance.get(currency, 0.0)
+        lines = [
+            f"--- Reçu bancaire ---",
+            f"Date : {now}",
+            f"Opération : {op_type}",
+            f"Montant : {amount:.2f} {currency.upper()}",
+            f"Solde après opération ({currency.upper()}) : {cur_balance:.2f}",
+            f"Livret (EUR) : {self.__livret:.2f}",
+            "---------------------\n"
+        ]
+        receipt = "\n".join(lines)
+        print(receipt)  # affiche dans la console
+
+        # enregistre le dernier reçu en fichier (écrase à chaque fois)
+        try:
+            with open("last_receipt.txt", "w", encoding="utf-8") as f:
+                f.write(receipt)
+        except Exception as e:
+            print(f"Erreur écriture reçu : {e}")
+
 
     #process user
     def process(self):
@@ -250,6 +258,7 @@ class Account:
             4 : Convertir de l'argent
             5 : Déposer sur livret
             6 : Retirer du livret
+            7 : Historique des transactions
             8 : Quitter
             """)
             try:
@@ -265,9 +274,11 @@ class Account:
                 try:
                     amount = float(input(f"Montant à déposer en {currency.upper()} : "))
                     self.deposit(currency, amount)
-                    self.dump_data()
+                    self.print_receipt("Dépôt", currency, amount)  
+                    self.dump_data()  
                 except ValueError as e:
                     print(f"Erreur : {e}")
+
             elif response == 3:
                 currency = self.choose_currency()
                 try:
@@ -302,9 +313,8 @@ class Account:
                     self.dump_data()
                 except ValueError as e:
                     print(f"Erreur : {e}")
-            # elif response == 7:
-            #     self.apply_interest()
-            #     self.dump_data()
+            elif response == 7:
+                self.show_transaction_history()
             elif response == 8:
                 self.dump_data()
                 print(f"Pour votre prochaine connection utiliser votre numero de compte {self.__account_number}")
@@ -358,19 +368,54 @@ class Account:
             if cont != "o":
                 break
         account_number = Account.generate_account_number()
-        return Account(name, account_number, balance, 0, livret_last_update)
+        return Account(name, account_number, balance, 0, livret_last_update, [])
+    
+    @staticmethod
+    def load_account():
+        numero_de_compte = input("Numéro de compte du propriétaire du compte : ")
 
-    def generate_card(self):
-        image = Image.open("./assets/base.jpg")
+        try:
+            with open('account.json', 'r') as file:
+                data = json.load(file)
+        except FileNotFoundError:
+            print("Aucun fichier de compte trouvé.")
+            return None
 
-        watermark_image = image.copy()
+        saved_hash = data.pop("_hash", None)
+        if not saved_hash:
+            print("Fichier invalide : aucun hash")
+            return None
 
-        draw = ImageDraw.Draw(watermark_image)
-
-        draw.text((75, 100), self.__account_number, (255, 255, 255))
-
-        #watermark_image.show()
-        path_card = f"./cards/{self.__account_number}.png"
-        watermark_image.save(path_card)
-        return path_card
+        recalculated_hash = hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()
+        if saved_hash != recalculated_hash:
+            print("⚠️ Le fichier a été modifié !")
+            return None
         
+        for account_number, account_data in data.items():
+            if account_number == numero_de_compte:
+                balance = account_data["Balance"]
+                livret = account_data["Livret"]
+                livret_last_update = account_data["Livret_last_update"]
+                name = account_data["Name"]
+                # Récupère l'historique s'il existe, sinon liste vide
+                transaction_history = account_data.get("Transaction_history", [])
+                print(f"Bienvenue {account_data["Name"]} !")
+                return Account(name, account_number, balance, livret, livret_last_update, transaction_history)
+
+        print("Compte introuvable")
+        return None
+
+
+
+# class Card(Account):
+#     def __init__(self, __account_number):
+#         super().__init__(__account_number)
+#         self.img = ""
+
+    
+#     def create_card(self):
+#         image = Image.open("./assets/base.jpg")
+#         watermark_image = image.copy()
+#         draw = ImageDraw.Draw(watermark_image)
+#         draw.text((0, 0), "GeeksforGeeks", (255, 255, 255))
+#         pass
