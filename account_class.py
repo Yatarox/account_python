@@ -101,19 +101,16 @@ class Account:
             return "Le montant ne peut pas être vide"
     
     #Basic feature
-    def withdraw(self, amount, currency="eur"):
-        self.__validate_currency(currency)
+    def withdraw(self, amount):
         self.__validate_amount(amount)
 
         if self.__balance >= amount:
-            retire = self.convert("eur", currency, amount)
             self.__balance -= amount
             return self.__balance
         else:
             return "Vous n'avez pas les fonds nécessaires"
 
-    def deposit(self, amount, currency="eur"):
-        self.__validate_currency(currency)
+    def deposit(self, amount):
         self.__validate_amount(amount)
         try:
             if amount < 0:
@@ -121,8 +118,7 @@ class Account:
             elif amount == 0:
                 return "Le montant doit être au minimum de 1"
             else:
-                add= self.convert(currency, "eur", amount)
-                self.__balance += add
+                self.__balance += amount
                 return self.__balance
         except:
             return "Le montant ne peut pas être vide"
@@ -131,6 +127,16 @@ class Account:
         print(f"Utilisateur: {self.__name} | N° de compte: {self.__account_number} | Balance : {self.__balance}")
         print(f"   Livret EUR: {self.__livret:.2f} (dernière maj : {self.__livret_last_update})")
     
+    def close_livret(self):
+        if self.__livret == False:
+            return False
+        else:
+            self.__livret = False
+            self.__balance += self.__balance_livret
+            self.__balance_livret = None
+            self.__livret_last_update = None
+            return self.__livret, self.__balance_livret, self.__balance_livret, self.__livret_last_update
+
     #Livret feature 
     def deposit_livret(self,amount):
         self.__validate_amount(amount)
