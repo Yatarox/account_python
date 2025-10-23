@@ -1,20 +1,69 @@
 {
-    "1234567890": {
-        "Name": "Thomas",
-        "Balance": 10000,
-        "Password": "4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2",
-        "Role": "Admin",
-        "Livret": false,
-        "Balance_livret": null,
+    "1301992051": {
+        "Name": "1",
+        "Balance": {
+            "usd": 1.0,
+            "eur": 0,
+            "jpy": 0,
+            "gbp": 0
+        },
+        "Livret": 0,
         "Livret_last_update": "2025-10-03"
     },
-    "0049772960": {
+    "3912539748": {
+        "Name": "2",
+        "Balance": {
+            "usd": 0,
+            "eur": 2.0,
+            "jpy": 0,
+            "gbp": 0
+        },
+        "Livret": 0,
+        "Livret_last_update": "2025-10-03"
+    },
+    "8583022438": {
+        "Name": "3",
+        "Balance": {
+            "usd": 0,
+            "eur": 0,
+            "jpy": 3.0,
+            "gbp": 0
+        },
+        "Livret": 0,
+        "Livret_last_update": "2025-10-03"
+    },
+    "2634773721": {
         "Name": "Kevin",
-        "Balance": 0,
-        "Password": "4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2",
-        "Role": "User",
-        "Livret": true,
-        "Balance_livret": 123,
+        "Balance": {
+            "usd": 9993950.0,
+            "eur": 100.0,
+            "jpy": 10.0,
+            "gbp": 4450.21242
+        },
+        "Livret": 0,
+        "Livret_last_update": "2025-10-03"
+    },
+    "4716243232": {
+        "Name": "Billy",
+        "Balance": {
+            "usd": 0.68009018,
+            "eur": 0,
+            "jpy": 0.0,
+            "gbp": 0
+        },
+        "Livret": 0,
+        "Livret_last_update": "2025-10-03"
+    },
+    "0941538041": {
+        "Name": "test",
+        "Balance": {
+            "usd": 500.0,
+            "eur": 0,
+            "jpy": 60000.0,
+            "gbp": 0
+        },
+        "Livret": 0,
         "Livret_last_update": "2025-10-23"
-    }
+    },
+    "_hash": "d13e1bcbae6bdabee2bb2107506abb29c6d0493f298715d689d67ce04cb90b4c"
 }
