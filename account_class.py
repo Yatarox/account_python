@@ -11,7 +11,7 @@ class Account:
     LIVRET_TAUX = 0.03
     LIVRET_PLAFOND = 22950
 
-    def __init__(self, password, account_number=None, role="User", name=None, balance=None, livret=None, balance_livret=None, livret_last_update=None):
+    def __init__(self, password=None, account_number=None, role="User", name=None, balance=None, livret=None, balance_livret=None, livret_last_update=None):
         self.__name = name
         self.__account_number = account_number
         self.__balance = balance
@@ -20,6 +20,32 @@ class Account:
         self.__password = password
         self.__role = role
         self.__balance_livret = balance_livret
+
+    def update(self):
+        with open('account.json', 'r', encoding="utf-8") as f:
+
+            data_exist = json.load(f)
+
+            if self.__livret == True:
+                self.__livret_last_update = datetime.today().strftime('%Y-%m-%d')
+            else:
+                self.__livret_last_update = None
+
+            new_data = {"Name": self.__name, "Balance": int(self.__balance), "Password": self.__password,  "Role": self.__role, "Livret": self.__livret, "Balance_livret": int(self.__balance_livret), "Livret_last_update": self.__livret_last_update}
+
+            if isinstance(data_exist, list):
+                data_exist.append(new_data)
+            else:
+                data_exist[self.__account_number] = new_data
+
+            f.close()
+
+            with open('account.json', 'w+', encoding="utf-8") as file:
+                json.dump(data_exist, file, indent=4, ensure_ascii=False)
+
+                file.close()
+        
+        print("Le compte de l'utilisateur a été mis a jour avec succès")
     
     def authentificate(self):
         with open("account.json", 'r', encoding="utf-8") as file:
@@ -46,7 +72,7 @@ class Account:
             else:
                 self.__livret = False
                 self.__balance_livret = None
-            new_data = {"Name": self.__name, "Balance": self.__balance, "Password": self.__password,  "Role": self.__role, "Livret": self.__livret, "Balance_livret": self.__balance_livret, "Livret_last_update": self.__livret_last_update}
+            new_data = {"Name": self.__name, "Balance": int(self.__balance), "Password": self.__password,  "Role": self.__role, "Livret": self.__livret, "Balance_livret": int(self.__balance_livret), "Livret_last_update": self.__livret_last_update}
 
             if isinstance(data_exist, list):
                 data_exist.append(new_data)
@@ -68,13 +94,16 @@ class Account:
             raise ValueError("Devise non autorisée")
 
     def __validate_amount(self, amount):
-        if amount <= 0:
-            raise ValueError("Montant doit être positif")
+        try: 
+            if amount <= 0:
+                raise ValueError("Montant doit être positif")
+        except TypeError:
+            return "Le montant ne peut pas être vide"
     
     #Basic feature
     def withdraw(self, currency, amount):
         self.__validate_currency(currency)
-        self.__validate_amount(amount)
+        amount = self.__validate_amount(amount)
 
         if self.__balance >= amount:
             retire = self.convert("eur", currency, amount)
@@ -83,13 +112,20 @@ class Account:
         else:
             print("Fonds insuffisants.")
 
-    def deposit(self, currency, amount):
+    def deposit(self, amount, currency="eur"):
         self.__validate_currency(currency)
         self.__validate_amount(amount)
-
-        add= self.convert(currency, "eur", amount)
-        self.__balance += add
-        return self.__balance, add
+        try:
+            if amount < 0:
+                return "Le montant ne peut pas être inférieur à 0"
+            elif amount == 0:
+                return "Le montant doit être au minimum de 1"
+            else:
+                add= self.convert(currency, "eur", amount)
+                self.__balance += add
+                return self.__balance
+        except:
+            return "Le montant ne peut pas être vide"
 
     def dump(self):
         print(f"Utilisateur: {self.__name} | N° de compte: {self.__account_number} | Balance : {self.__balance}")

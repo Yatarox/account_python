@@ -8,6 +8,7 @@ SECONDARY_COLOR = "#3B82F6"
 BACKGROUND_COLOR = "#111827"
 TEXT_COLOR = "white"
 PLACEHOLDER_COLOR = "#9CA3AF"
+ERROR_COLOR = "red"
 
 class Header(ctk.CTkFrame):
     def __init__(self, master):
@@ -21,6 +22,58 @@ class Header(ctk.CTkFrame):
 
         self.title = ctk.CTkLabel(self, text="BPE - Banque de proximité de l'EPSI", fg_color="transparent", text_color=TEXT_COLOR, font=('Arial Bold', 22))
         self.title.grid(row=0, column=1, sticky="w", padx=10)
+
+
+class AddMoney(ctk.CTkFrame):
+    def __init__(self, master, switch_body, current_user):
+        super().__init__(master, fg_color=BACKGROUND_COLOR)
+
+        self.switch_body = switch_body
+        self.current_user = current_user
+        #print(f"AddMoney : {self.current_user}")
+
+        self.amount = ctk.CTkEntry(self, placeholder_text="Entrez le montant à ajouter", width=200, height=40, justify='center', text_color=TEXT_COLOR)
+        self.amount.pack(pady=(50, 15))
+
+        self.validate = ctk.CTkButton(self, text='Valider', width=200, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR, command=self.addMoney)
+        self.validate.pack(pady=(0, 0))
+    
+    def addMoney(self):
+        print(f"addMoney function current user : {self.current_user.values()}")
+        attrs = list(self.current_user.values())
+        #print(f"attrs = {attrs}")
+        account_number = list(self.current_user.keys())
+        account_number = account_number[0]
+        name = attrs[0]['Name']
+        balance = attrs[0]['Balance']
+        password = attrs[0]['Password']
+        role = attrs[0]['Role']
+        livret = attrs[0]['Livret']
+        balance_livret = attrs[0]['Balance_livret']
+        livret_last_update = attrs[0]['Livret_last_update']
+        """print(f"Le nom du l'utilisateur est : {name}")
+        print(balance)
+        print(password)
+        print(role)
+        print(livret)
+        print(balance_livret)
+        print(livret_last_update)"""
+        amount = self.amount.get()
+        try:
+            amount = int(amount)
+        except:
+            amount = None
+        self.current_account = Account(account_number=account_number, name=name, balance=balance, password=password, role=role, livret=livret, balance_livret=balance_livret, livret_last_update=livret_last_update)
+        balance = self.current_account.deposit(amount=amount)
+
+        if not isinstance(balance, (int, float)):
+            message = balance
+            self.error = ctk.CTkLabel(self, text=message, width=150, height=20, justify='center', text_color=ERROR_COLOR)
+            self.error.pack(pady=(10, 15))
+        else:
+            self.current_account = Account(account_number=account_number, name=name, balance=balance, password=password, role=role, livret=livret, balance_livret=balance_livret, livret_last_update=livret_last_update)
+            self.current_account.update()
+
 
 class BaseBody(ctk.CTkFrame):
     def __init__(self, master, switch_body):
@@ -46,14 +99,16 @@ class BaseBody(ctk.CTkFrame):
         print(hashed_password)
 
         account = Account(name=username, password=pwd)
-        account_auth, current_user = account.authentificate()
+        self.account_auth, self.current_user = account.authentificate()
 
-        number_account_current_user = next(iter(current_user))
+        number_account_current_user = next(iter(self.current_user))
 
-        if account_auth and current_user[number_account_current_user]["Role"] == "Admin":
+        if self.account_auth and self.current_user[number_account_current_user]["Role"] == "Admin":
             self.switch_body("AdminBody")
-        elif account_auth and current_user[number_account_current_user]["Role"] == "User":
-            self.switch_body("UserBody", current_user)
+        elif self.account_auth and self.current_user[number_account_current_user]["Role"] == "User":
+            #self.current_user = self.current_user[number_account_current_user]["Name"]
+            self.switch_body("UserBody", self.current_user)
+            #print(f"Le current user est : {self.current_user}")
 
             # Voir pour créer une var current_user et la passer à switch_body
             # puis de switch_body à l'instance de body en cours pour pouvoir garder l'user connecté en cache
@@ -65,6 +120,7 @@ class UserBody(ctk.CTkFrame):
         self.switch_body = switch_body
         #self.current_id = current_id
         self.current_user = current_user
+        #print(f"UserBody : {self.current_user}")
 
         self.name = ctk.CTkLabel(self, text="Bienvenu dans votre espace client", font=('Arial', 20), width=250, height=40, justify='center', text_color=TEXT_COLOR)
         self.name.grid(row=0, column=0, columnspan=2, padx=20, pady=(40, 40), sticky="ew")
@@ -75,7 +131,7 @@ class UserBody(ctk.CTkFrame):
         self.withdraw = ctk.CTkButton(self, text="Retirer de l'argent", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR)
         self.withdraw.grid(row=1, column=1, pady=(20, 0))
 
-        self.deposit = ctk.CTkButton(self, text="Déposer de l'argent", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR)
+        self.deposit = ctk.CTkButton(self, text="Déposer de l'argent", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR,  command=self.on_click_add_money)
         self.deposit.grid(row=2, column=0, pady=(20, 0))
 
         self.send_money = ctk.CTkButton(self, text="Effectuer un virement", width=250, height=40, fg_color=PRIMARY_COLOR, hover_color=SECONDARY_COLOR, text_color=TEXT_COLOR)
@@ -90,10 +146,10 @@ class UserBody(ctk.CTkFrame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
     
-    """def call_dump(self):
-        account = Account(self.current_id)
-        if account: 
-            pass"""
+    def on_click_add_money(self):
+        self.add_money = PopUp(body="AddMoney", current_user=self.current_user)
+        self.add_money.mainloop()
+        self.add_money.show_body("AddMoney", self.current_user)
 
     def call_generate_card(self):
         account_number=next(iter(self.current_user))
@@ -157,7 +213,7 @@ class AdminBody(ctk.CTkFrame):
         balance = self.balance.get()
         role = self.role.get()
         epargne = self.epargne_var.get()
-        print(f"La valeur de la checkbox est : {epargne}")
+        #print(f"La valeur de la checkbox est : {epargne}")
 
         self.name.delete(0, "end")
         self.password.delete(0, "end")
@@ -194,6 +250,28 @@ class Footer(ctk.CTkFrame):
         self.links = ctk.CTkLabel(container, text="CGU   |   Contact   |   Aide", font=('Calibri Light', 12), text_color=PLACEHOLDER_COLOR, fg_color='transparent')
         self.links.pack(side="right", padx=(0, 20))
 
+class PopUp(ctk.CTk):
+    def __init__(self, body, current_user):
+        super().__init__(fg_color=BACKGROUND_COLOR)
+        self.geometry('300x200')
+        self.maxsize(300, 200)
+        self.minsize(300, 200)
+        self.title("Notification")
+        self.body = body
+        self.current_user = current_user
+
+        self.configure(fg_color=BACKGROUND_COLOR)
+
+        self.content = self.show_body(self.body)
+
+    def show_body(self, body, current_user=None):
+        if body == "AddMoney":
+            self.current_body = AddMoney(self, self.show_body, self.current_user)
+            #print(f"PopUp : {self.current_user}")
+
+        self.current_body.pack(fill="both", expand=True)
+
+
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -214,6 +292,7 @@ class App(ctk.CTk):
         self.footer.pack(side="bottom", fill="x")
 
     def show_body(self, body, current_user=None):
+        self.current_user = current_user
         if self.current_body is not None:
             self.current_body.pack_forget()
 
@@ -222,6 +301,7 @@ class App(ctk.CTk):
         elif body == "AdminBody":
             self.current_body = AdminBody(self, self.show_body)
         elif body == "UserBody":
-            self.current_body = UserBody(self, self.show_body, current_user)
+            self.current_body = UserBody(self, self.show_body, self.current_user)
+            #print(self.current_user)
 
         self.current_body.pack(fill="both", expand=True)

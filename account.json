@@ -1,7 +1,7 @@
 {
     "1234567890": {
         "Name": "Thomas",
-        "Balance": "10000",
+        "Balance": 10000,
         "Password": "4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2",
         "Role": "Admin",
         "Livret": false,
@@ -10,29 +10,11 @@
     },
     "0049772960": {
         "Name": "Kevin",
-        "Balance": "123",
+        "Balance": 135,
         "Password": "4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2",
         "Role": "User",
         "Livret": true,
-        "Balance_livret": "123",
-        "Livret_last_update": "2025-10-03"
-    },
-    "4082177421": {
-        "Name": "",
-        "Balance": "",
-        "Password": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "Role": "-- Sélectionnez un rôle --",
-        "Livret": false,
-        "Balance_livret": null,
-        "Livret_last_update": "2025-10-22"
-    },
-    "4404895954": {
-        "Name": "Test",
-        "Balance": "12",
-        "Password": "4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2",
-        "Role": "Admin",
-        "Livret": true,
-        "Balance_livret": "12",
-        "Livret_last_update": "2025-10-22"
+        "Balance_livret": 123,
+        "Livret_last_update": "2025-10-23"
     }
 }
